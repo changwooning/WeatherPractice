@@ -58,19 +58,24 @@ public class DiaryService {
 
 
     public void createDiary(LocalDate date, String context) {
-        // 1. openWeatherMap 에서 받아온 데이터 가져오기
-        String weatherData = getWeatherString();
-        // 2. 받아온 데이터(JSON) 사용 가능하게 파싱하기
-        Map<String, Object> parseWeather = parseWeather(weatherData);
+        // 날씨 데이터 가져오기 (DB 에 저장된 날씨 데이터 불러오기 , 없으면 API 에서 불러오기)
+        DateWeather dateWeather = getDateWeather(date);
 
-        // 3. 파싱된 데이터 -> 우리 DB에 저장
+        // 3. 우리 DB에 저장
         Diary nowDiary = new Diary();
-        nowDiary.setWeather(parseWeather.get("main").toString());
-        nowDiary.setIcon(parseWeather.get("icon").toString());
-        nowDiary.setTemperature((double) parseWeather.get("temp"));
         nowDiary.setDate(date);
         nowDiary.setContext(context);
+        nowDiary.setDateWeather(dateWeather);
         diaryRepository.save(nowDiary);
+    }
+
+    private DateWeather getDateWeather(LocalDate date){
+        List<DateWeather> dateWeatherListFromDB = dateWeatherRepository.findAllByDate(date);
+        if(dateWeatherListFromDB.size() == 0){
+            return getWeatherFromApi();
+        }else{
+            return dateWeatherListFromDB.get(0);
+        }
     }
 
     private String getWeatherString() {
