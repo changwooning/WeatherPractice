@@ -106,5 +106,6 @@ public class DiaryService {
     }
 
     public void deleteDiary(LocalDate date) {
+        diaryRepository.deleteAllByDate(date);
     }
 }
