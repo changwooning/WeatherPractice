@@ -96,6 +96,7 @@ public class DiaryService {
     }
 
     public List<Diary> readDiaries(LocalDate startDate, LocalDate endDate) {
+        return diaryRepository.findAllByDateBetween(startDate, endDate);
     }
 
     public void updateDiary(LocalDate date, String context) {
