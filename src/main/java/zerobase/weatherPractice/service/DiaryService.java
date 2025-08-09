@@ -4,9 +4,12 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import zerobase.weatherPractice.domain.DateWeather;
 import zerobase.weatherPractice.domain.Diary;
+import zerobase.weatherPractice.repository.DateWeatherRepository;
 import zerobase.weatherPractice.repository.DiaryRepository;
 
 import java.io.BufferedReader;
@@ -25,9 +28,32 @@ public class DiaryService {
     private String apiKey;
 
     private DiaryRepository diaryRepository;
+    private DateWeatherRepository dateWeatherRepository;
 
-    public DiaryService(DiaryRepository diaryRepository) {
+    public DiaryService(DiaryRepository diaryRepository, DateWeatherRepository dateWeatherRepository) {
         this.diaryRepository = diaryRepository;
+        this.dateWeatherRepository = dateWeatherRepository;
+    }
+
+    @Scheduled(cron = "0 0 1 * * *")
+    public void saveWeatherDate() {
+        dateWeatherRepository.save(getWeatherFromApi());
+    }
+
+    // 특정 시간 날씨 가져오기
+    private DateWeather getWeatherFromApi() {
+        // 1. open weather map 에서 날씨 가져오기
+        String weatherDate = getWeatherString();
+
+        // 2. 파싱해주고.
+        Map<String, Object> parsedWeather = parseWeather(weatherDate);
+
+        DateWeather dateWeather = new DateWeather();
+        dateWeather.setDate(LocalDate.now());
+        dateWeather.setWeather(parsedWeather.get("main").toString());
+        dateWeather.setIcon(parsedWeather.get("icon").toString());
+        dateWeather.setTemperature((double) parsedWeather.get("temp"));
+        return dateWeather;
     }
 
 
