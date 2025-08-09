@@ -3,10 +3,13 @@ package zerobase.weatherPractice.service;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import zerobase.weatherPractice.WeatherPracticeApplication;
 import zerobase.weatherPractice.domain.DateWeather;
 import zerobase.weatherPractice.domain.Diary;
 import zerobase.weatherPractice.repository.DateWeatherRepository;
@@ -30,6 +33,8 @@ public class DiaryService {
     private DiaryRepository diaryRepository;
     private DateWeatherRepository dateWeatherRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(WeatherPracticeApplication.class);
+
     public DiaryService(DiaryRepository diaryRepository, DateWeatherRepository dateWeatherRepository) {
         this.diaryRepository = diaryRepository;
         this.dateWeatherRepository = dateWeatherRepository;
@@ -37,6 +42,7 @@ public class DiaryService {
 
     @Scheduled(cron = "0 0 1 * * *")
     public void saveWeatherDate() {
+        logger.info("오늘도 날씨 데이터 잘 가져옴");
         dateWeatherRepository.save(getWeatherFromApi());
     }
 
@@ -58,6 +64,8 @@ public class DiaryService {
 
 
     public void createDiary(LocalDate date, String context) {
+
+        logger.info("started to create diary");
         // 날씨 데이터 가져오기 (DB 에 저장된 날씨 데이터 불러오기 , 없으면 API 에서 불러오기)
         DateWeather dateWeather = getDateWeather(date);
 
@@ -67,13 +75,14 @@ public class DiaryService {
         nowDiary.setContext(context);
         nowDiary.setDateWeather(dateWeather);
         diaryRepository.save(nowDiary);
+        logger.info("end to create diary");
     }
 
-    private DateWeather getDateWeather(LocalDate date){
+    private DateWeather getDateWeather(LocalDate date) {
         List<DateWeather> dateWeatherListFromDB = dateWeatherRepository.findAllByDate(date);
-        if(dateWeatherListFromDB.size() == 0){
+        if (dateWeatherListFromDB.size() == 0) {
             return getWeatherFromApi();
-        }else{
+        } else {
             return dateWeatherListFromDB.get(0);
         }
     }
@@ -125,6 +134,7 @@ public class DiaryService {
 
     @Transactional(readOnly = true)
     public List<Diary> readDiary(LocalDate date) {
+        logger.debug("read diary");
         return diaryRepository.findAllByDate(date);
     }
 
@@ -141,5 +151,6 @@ public class DiaryService {
 
     public void deleteDiary(LocalDate date) {
         diaryRepository.deleteAllByDate(date);
+        logger.error("deleted");
     }
 }
