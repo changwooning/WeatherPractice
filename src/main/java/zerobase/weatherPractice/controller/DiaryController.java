@@ -10,7 +10,7 @@ import zerobase.weatherPractice.service.DiaryService;
 import java.time.LocalDate;
 import java.util.List;
 
-@Controller
+@RestController
 public class DiaryController {
 
     private final DiaryService diaryService;
