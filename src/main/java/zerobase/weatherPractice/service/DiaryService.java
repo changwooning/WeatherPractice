@@ -100,6 +100,9 @@ public class DiaryService {
     }
 
     public void updateDiary(LocalDate date, String context) {
+        Diary nowDiary = diaryRepository.getFirstByDate(date);
+        nowDiary.setContext(context);
+        diaryRepository.save(nowDiary);
     }
 
     public void deleteDiary(LocalDate date) {
